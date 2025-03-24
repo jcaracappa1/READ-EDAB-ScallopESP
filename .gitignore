@@ -1,1 +1,6 @@
-
+/data/
+/figures/
+*.nc
+*.pdf
+*.png
+.Rproj.user
