@@ -1,6 +1,10 @@
+<<<<<<< HEAD
 /data/
 /figures/
 *.nc
 *.pdf
 *.png
 .Rproj.user
+=======
+
+>>>>>>> 4b13e7c72a12764ca7810db7d74b51be97dc3fbc
