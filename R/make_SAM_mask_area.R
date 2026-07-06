@@ -1,6 +1,6 @@
 #Script to calculate the habitable area by year within each SAMS
 
-out.dir = here::here('data','habitat_area')
+# out.dir = here::here('data','habitat_area')
 # input.dir = 'C:/Users/Joseph.Caracappa/Documents/Data/GLORYS/GLORYS_daily/'
 # input.prefix = 'GLORYS_daily_BottomTemp_'
 # file.shp = terra::project(terra::vect(here::here('geometry','MAB_Scallop_Estimation_Areas_2022_80meters.shp'),crs = '+proj=longlat'),'+proj=longlat +datum=WGS84 +no_defs ')
@@ -28,7 +28,10 @@ make_SAM_mask_area = function(out.dir,input.dir,input.prefix,file.shp,years,shp.
   i=1
   for(i in 1:length(years)){
     
-    file.in = paste0(input.dir,input.prefix,years[i],'.nc')
+    input.files = list.files(path =input.dir,input.prefix)
+    input.files.year = as.numeric(gsub(".*(\\d{4}).*", '\\1', input.files))
+    
+    file.in = input.files[which(input.files.year == years[i])]
     
     
     file.date = seq.Date(as.Date(paste0(years[i],'-01-01')),as.Date(paste0(years[i],'-12-31')),by = 'd')

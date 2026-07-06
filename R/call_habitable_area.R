@@ -2,28 +2,31 @@
 library(terra)
 library(dplyr)
 library(ggplot2)
-figure.out.dir = here::here('figures','habitat_area')
+figure.out.dir = here::here('figures','NEFMC_12_2025')
 file.shp = terra::project(terra::vect(here::here('geometry','archive','MAB_Est_Areas_SAMS_CASA_UTM18_EDAB.shp')),'+proj=longlat +datum=WGS84 +no_defs ')
 # file.shp = terra::vect(here::here('geometry','Scallop_2024_MAB_Est_Areas_SAMS_CASA_UTM18_EDAB_80meters.shp'))
 # file.shp = terra::project(terra::vect(here::here('geometry','MAB_Est_Areas_SAMS_CASA_UTM18_EDAB.shp'),crs = '+proj=longlat'),'+proj=longlat +datum=WGS84 +no_defs ')
 # file.shp =terra::vect(here::here('geometry','MAB_Est_Areas_SAMS_CASA_UTM18_EDAB.shp'),crs = '+proj=longlat')
 # SAM.names = grep('_LT80',file.shp$SAMS,value =T)
 SAM.names = file.shp$SAMS
-years = 1993:2023
+years = 2025
 # max.val.scallop = seq(16,19,0.5)
 max.val.scallop = c(17,18,19)
 min.val.astropectin = seq(4,7,1)
 j.day.start = as.numeric(format(as.Date('2020-09-01'),format = '%j'))
 j.day.end = as.numeric(format(as.Date('2020-11-30'),format = '%j'))
-
+input.dir = "W:/GLORYS/glorys_bottomT/cmems_mod_glo_phy_anfc_0.083deg_P1D-m/bottomT/"
+output.dir = here::here('data','NEFMC_12_2025')
 ####Scallop Habitable####
 #make_habitable_area_scallop_SAM
 source(here::here('R','make_SAM_mask_area.R'))
 source(here::here('R','make_mask_area.R'))
 make_SAM_mask_area(
   out.dir = here::here('data','habitat_area','SAMS','scallop','/'),
-  input.dir = 'C:/Users/Joseph.Caracappa/Documents/Data/GLORYS/GLORYS_daily/',
-  input.prefix = 'GLORYS_daily_BottomTemp_',
+  # input.dir = 'C:/Users/Joseph.Caracappa/Documents/Data/GLORYS/GLORYS_daily/',
+  input.dir = input.dir,
+  # input.prefix = 'GLORYS_daily_BottomTemp_',
+  input.prefix = 'GLORYS_REANALYSIS_DAILY_cmems_mod_glo_phy_anfc_0.083deg_P1D-m_bottomT_',
   file.shp = file.shp,
   years = years,
   min.vals = 0,
@@ -242,7 +245,7 @@ make_degree_day_MAB(
   file.shp = file.shp,
   SAM.names = SAM.names,
   plot =T,
-  figure.dir = here::here('figures','RTA working paper')
+  figure.dir = here::here('figures','NEFMC_12_2025')
 )
 
 #make astropectin degree days #Doesnt work

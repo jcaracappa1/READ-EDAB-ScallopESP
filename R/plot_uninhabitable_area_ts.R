@@ -4,7 +4,7 @@ library(dplyr)
 
 years = 1993:2023
 
-fig.dir = here::here('figures','RTA working paper')
+fig.dir = here::here('figures','NEFMC_12_2025')
 ##Scallop metrics
 
 scallop.SAM.all = read.csv(here::here('data','inhabitable_area','MAB','scallop','thermal_inhabitable_area_scallop_MAB.csv'),as.is =T)%>%
