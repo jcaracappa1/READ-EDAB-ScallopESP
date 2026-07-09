@@ -4,21 +4,26 @@ forecast_orig_file = 'W:/MOM6/seasonal_forecasts/i202604/tob.nwa.full.ss_fcast.d
 nc_out_dir = 'W:/MOM6/seasonal_forecasts/i202604/tob/daily/'
 df_out_dir = 'V:/MOM6/seasonal_forecasts/i202604/tob/daily/'
 output_prefix = 'nwa_neus_i202604_'
-shp.file <- system.file("data", "EPU_NOESTUARIES.shp", package = "EDABUtilities")
+shp_files = list('scallop_strata' = terra::vect(NEFSCspatial::scallop_strata))
+area_var = c('scallop_strata' = 'SAMS')
 threshold = 18
 overwrite = F
 
-process_mom6_forecast = function(forecast_orig_file,nc_out_dir, df_out_dir,output_prefix,shp.file,threshold = 18,overwrite = F){
+process_mom6_forecast = function(forecast_orig_file,nc_out_dir, df_out_dir,output_prefix,shp_files,threshold = 18,overwrite = F){
   
-  if(!dir.exists(output_dir)){
-    dir.create(output_dir)
+  if(!dir.exists(nc_out_dir)){
+    dir.create(nc_out_dir)
   }
 
+  if(!dir.exists(df_out_dir)){
+    dir.create(df_out_dir)
+  }
+  
   #get global attributes
   data.nc = ncdf4::nc_open(forecast_orig_file)
   ndays = ncdf4::ncvar_get(data.nc,'valid_time')
   init.date.string = ncdf4::ncatt_get(data.nc,'init','units')$value
-  init.date = strsplit(init.day.string, split = '\\s+')[[1]][3] |> as.Date()
+  init.date = strsplit(init.date.string, split = '\\s+')[[1]][3] |> as.Date()
   file.times = init.date + ndays
   ncdf4::nc_close(data.nc)
   
@@ -44,10 +49,16 @@ process_mom6_forecast = function(forecast_orig_file,nc_out_dir, df_out_dir,outpu
     dplyr::mutate(var.name = name.strings)
     
     
-  var.combs = expand.grid(variable = unique(data.var.names$variable), member = unique(data.var.names$member))
+  var.combs = expand.grid(variable = unique(data.var.names$variable), member = unique(data.var.names$member), which.shp = 1:length(shp_files))
+    
   
   #Loop through layers
   for(i in 1:nrow(var.combs)){
+
+    this.shp = shp_files[[var.combs$which.shp[i]]]
+    this.region = names(shp_files)[var.combs$which.shp[i]]
+    which.names = which(names(this.shp) == area_var[var.combs$which.shp[i]])
+    region.names = terra::as.data.frame(this.shp)[,which.names]
 
     var.subset.names = data.var.names |> 
       dplyr::filter(member == var.combs$member[i], variable == var.combs$variable[i]) |> 
@@ -61,25 +72,27 @@ process_mom6_forecast = function(forecast_orig_file,nc_out_dir, df_out_dir,outpu
     if(!is.anom){
       
       #Get ndays gridded and write
-      thresh.filename = paste0(nc_out_dir,'threshold/',output_prefix,'nd',threshold,'_',var.combs$variable[i],'_member=',var.combs$member[i],'.nc')
+      message('Doing thresholded ndays for ',var.combs$variable[i],' member = ',var.combs$member[i])
+      thresh.filename = paste0(nc_out_dir,'threshold/',output_prefix,this.region,'_nd',threshold,'_',var.combs$variable[i],'_member=',var.combs$member[i],'.nc')
       
       if(file.exists(thresh.filename) & !overwrite){
         print(paste0('File exists and overwrite = F, skipping: ',thresh.filename))
       }else{
         
-        data.thresh = EDABUtilities::make_2d_deg_day_gridded(data.in = this.data,
+        EDABUtilities::make_2d_deg_day_gridded(data.in = this.data,
                                                              var.name = var.combs$variable[i],
                                                              type = 'above',
                                                              ref.value = threshold,
-                                                             statistic = 'nd',
-                                                             shp.file = shp.file,
+                                                             metric = 'nd',
+                                                             shp.file = this.shp,
                                                              write.out = T,
                                                              output.file = thresh.filename)
         
       }
       
       #Get ndays table and write
-      thresh.df.filename =  paste0(df_out_dir,'threshold/',output_prefix,'nd',threshold,'_',var.combs$variable[i],'_member=',var.combs$member[i],'.csv')
+      message('Doing thresholded ndays table for ',var.combs$variable[i],' member = ',var.combs$member[i])
+      thresh.df.filename =  paste0(df_out_dir,'threshold/',output_prefix,this.region,'_nd',threshold,'_',var.combs$variable[i],'_member=',var.combs$member[i],'.csv')
       
       if(file.exists(thresh.df.filename) & !overwrite ){
         print(paste0('File exists and overwrite = F, skipping: ',thresh.df.filename))
@@ -89,8 +102,8 @@ process_mom6_forecast = function(forecast_orig_file,nc_out_dir, df_out_dir,outpu
                                                            type = 'above',
                                                            ref.value = threshold,
                                                            metric = 'nd',
-                                                           shp.file = shp.file,
-                                                           area.names  = c('GOM','GB','MAB'))[[1]]
+                                                           shp.file = this.shp,
+                                                           area.names  =region.names)[[1]]
         
         data.thresh.df = data.thresh.df |>  
           dplyr::mutate(year = format(init.date,'%Y'),
@@ -101,15 +114,16 @@ process_mom6_forecast = function(forecast_orig_file,nc_out_dir, df_out_dir,outpu
     }
     
     #Do daily stats+
-    
-    stats.nc.filename =  paste0(nc_out_dir,'stats/',output_prefix,'stats_',var.combs$variable[i],'_member=',var.combs$member[i],'.nc')
-    if(file.exists(thresh.df.filename) & !overwrite ){
+    message('Doing Daily Gridded Stats for ',var.combs$variable[i],' member = ',var.combs$member[i])
+    stats.nc.filename =  paste0(nc_out_dir,'stats/',output_prefix,this.region,'_stats_',var.combs$variable[i],'_member=',var.combs$member[i],'.nc')
+    if(file.exists(stats.nc.filename) & !overwrite ){
       print(paste0('File exists and overwrite = F, skipping: ',stats.nc.filename))
     }else{
      
       EDABUtilities::make_2d_summary_gridded(data.in = this.data,
                                                         var.name = var.combs$variable[i],
-                                                        shp.file = shp.file,
+                                                        shp.file =this.shp,
+                                                        area.names = region.names,
                                                         agg.time = 'years',
                                                         statistics = c('mean','sd','min','max'),
                                                         file.time = 'annual',
@@ -119,19 +133,20 @@ process_mom6_forecast = function(forecast_orig_file,nc_out_dir, df_out_dir,outpu
       
     }
     
-    stats.df.filename = paste0(df_out_dir,'stats/',output_prefix,'stats_',var.combs$variable[i],'_member=',var.combs$member[i],'.csv')
+    message('Doing monthly stats table for ',var.combs$variable[i],' member = ',var.combs$member[i])
+    stats.df.filename = paste0(df_out_dir,'stats/',output_prefix,this.region,'_stats_',var.combs$variable[i],'_member=',var.combs$member[i],'.csv')
     if(file.exists(stats.df.filename) & !overwrite ){
       print(paste0('File exists and overwrite = F, skipping: ',stats.df.filename))
     }else{
       
       stats.df = EDABUtilities::make_2d_summary_ts(data.in = this.data,
                                                         var.name = var.combs$variable[i],
-                                                        shp.file = shp.file,
+                                                        shp.file = this.shp,
                                                         agg.time = 'months',
                                                         statistics = c('mean','sd','min','max'),
                                                         file.time = 'annual',
                                                         write.out = F,
-                                                        area.names  = c('GOM','GB','MAB'))[[1]]
+                                                        area.names  = region.names)[[1]]
       
      
       stats.df = stats.df |>  
@@ -147,12 +162,4 @@ process_mom6_forecast = function(forecast_orig_file,nc_out_dir, df_out_dir,outpu
     
   }
 
-  # 
-  # data.nc = ncdf4::nc_open(forecast_orig_file)
-  # names(data.nc$dim)
-  # names(data.nc$var)
-  # ncdf4::ncvar_get(data.nc,'valid_time')
-  # ncdf4::ncvar_get(data.nc,'tob_anom')
-  # ncdf4::nc_close(data.nc)
-  # # terra::time(data)
 }
