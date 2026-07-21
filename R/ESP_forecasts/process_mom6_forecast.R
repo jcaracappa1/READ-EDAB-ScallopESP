@@ -4,7 +4,7 @@ forecast_orig_file = 'W:/MOM6/seasonal_forecasts/i202604/tob.nwa.full.ss_fcast.d
 nc_out_dir = 'W:/MOM6/seasonal_forecasts/i202604/tob/daily/'
 df_out_dir = 'V:/MOM6/seasonal_forecasts/i202604/tob/daily/'
 output_prefix = 'nwa_neus_i202604_'
-
+library(sf)
 shp_orig = NEFSCspatial::scallop_strata |> 
   # dplyr::filter(grepl('MAB',NEWSAMS)) |> 
   dplyr::group_by(NEWSAMS) |> 

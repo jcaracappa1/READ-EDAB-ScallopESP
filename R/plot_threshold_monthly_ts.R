@@ -42,6 +42,11 @@ plot_threshold_monthly_ts = function(data_dir,fig_dir,df_out_dir, file_prefix,sh
       'Number of Consecutive Days'
     }
     
+    data.thresh.mean$metric = this.metric
+    
+    saveRDS(data.thresh,paste0(df_out_dir,file_prefix,this.metric,temp_thresh,'degC_monthly_ts.rds'))
+    saveRDS(data.thresh.mean,paste0(df_out_dir,file_prefix,this.metric,temp_thresh,'degC_monthly_ts_mean.rds'))
+    
     p.thresh.all =ggplot2::ggplot()+
       ggplot2::geom_line(data= data.thresh, ggplot2::aes(x = date, y = value, color = member))+
       ggplot2::geom_ribbon(data = data.thresh.mean, ggplot2::aes(x = date, ymin = value.lower, ymax = value.upper), alpha = 0.2)+
@@ -51,12 +56,12 @@ plot_threshold_monthly_ts = function(data_dir,fig_dir,df_out_dir, file_prefix,sh
       ggplot2::scale_x_date(date_breaks = '1 month', date_labels = '%b %Y')+
       ggplot2::xlab('')+
       ggplot2::theme_bw()+
-      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, vjust = 1))
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, vjust = 1,size =10))
     
     fig.name = paste0(fig_dir, file_prefix,data.thresh$metric[1],temp_thresh,'.png')
     
     if(!file.exists(fig.name) | overwrite_plot){
-      ggplot2::ggsave(plot = p.thresh.all,filename = fig.name, width = 12, height = 6)
+      ggplot2::ggsave(plot = p.thresh.all,filename = fig.name, width = 8, height = 4)
     }
     
     #Non-zero areas
@@ -74,16 +79,16 @@ plot_threshold_monthly_ts = function(data_dir,fig_dir,df_out_dir, file_prefix,sh
       ggplot2::geom_ribbon(data = data.thresh.nozero.mean, ggplot2::aes(x = date, ymin = value.lower, ymax = value.upper), alpha = 0.2)+
       ggplot2::geom_line(data = data.thresh.nozero.mean, ggplot2::aes(x = date, y = value.mean),color = 'black')+
       ggplot2::facet_wrap(~area)+
-      ggplot2::ylab(paste0('Number of Days Exceeding ',temp_thresh,'degC'))+
+      ggplot2::ylab(paste0(this.metric.name,' Exceeding ',temp_thresh,'degC'))+
       ggplot2::scale_x_date(date_breaks = '1 month', date_labels = '%b %Y')+
       ggplot2::xlab('')+
       ggplot2::theme_bw()+
-      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, vjust = 1))
+      ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, vjust = 1,size = 10))
     
     fig.name = paste0(fig_dir, file_prefix,data.thresh$metric[1],temp_thresh,'_nonzero_areas.png')
     
     if(!file.exists(fig.name) | overwrite_plot){
-      ggplot2::ggsave(plot = p.thresh.nozero,filename = fig.name, width = 12, height = 6)
+      ggplot2::ggsave(plot = p.thresh.nozero,filename = fig.name, width = 8, height = 4)
     }
     
   }

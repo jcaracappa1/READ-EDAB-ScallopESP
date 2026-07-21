@@ -49,12 +49,13 @@ plot_threshold_ts = function(data_dir,fig_dir,df_out_dir, file_prefix,shp_file,d
     ggplot2::scale_color_manual(values = c(RColorBrewer::brewer.pal(10,'Paired'),'black'))+
     ggplot2::scale_linewidth_manual(values = c(rep(0.5,10),1))+
     ggplot2::geom_hline(yintercept = temp_thresh,lty = 2)+
-    ggplot2::theme_bw()
+    ggplot2::theme_bw()+
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1, size = 10))
   
   fig.name = paste0(fig_dir, file_prefix, stat.names[i],'_tob_ts.png')
   
   if(!file.exists(fig.name) | overwrite_plot){
-    ggplot2::ggsave(plot = p.stat,filename = fig.name, width = 12, height = 6)
+    ggplot2::ggsave(plot = p.stat,filename = fig.name, width = 8, height = 4)
   }
   
   #Do number of days
@@ -70,19 +71,19 @@ plot_threshold_ts = function(data_dir,fig_dir,df_out_dir, file_prefix,shp_file,d
                   value.upper = value.mean + value.sd)
   
   p.thresh = ggplot2::ggplot()+
-    ggplot2::geom_point(data= data.thresh, ggplot2::aes(x = area, y = value, color = member))+
+    ggplot2::geom_point(data= data.thresh, ggplot2::aes(x = area, y = value, color = member),size = 2)+
     ggplot2::geom_errorbar(data = data.thresh.mean, ggplot2::aes(x = area, y = value.mean, ymin = value.lower, ymax = value.upper), width = 0.2)+
     ggplot2::geom_point(data = data.thresh.mean, ggplot2::aes(x = area, y = value.mean))+
     ggplot2::ylab(paste0('Number of Days Exceeding ',temp_thresh,'degC'))+
     ggplot2::xlab('')+
     ggplot2::theme_bw()+
-    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, vjust = 1, size = 10))
     
     
   fig.name = paste0(fig_dir, file_prefix, 'nd',temp_thresh,'.png')
   
   if(!file.exists(fig.name) | overwrite_plot){
-    ggplot2::ggsave(plot = p.thresh,filename = fig.name, width = 12, height = 6)
+    ggplot2::ggsave(plot = p.thresh,filename = fig.name, width = 8, height = 4)
   }
   
   

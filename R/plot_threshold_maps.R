@@ -5,7 +5,7 @@ nc_out_dir = 'V:/MOM6/seasonal_forecasts/i202604/tob/daily/threshold_stats/'
 file_prefix = 'nwa_neus_i202604_scallop_strata_nd18_tob'
 shp_file =  terra::vect(NEFSCspatial::scallop_strata)
 day_thresholds = c(5,10,20)
-overwrite_plot = F
+overwrite_plot = T
 
 
 plot_threshold_maps = function(data_dir, fig_dir,nc_out_dir,shp_file,overwrite_plot =T, day_thresholds = 5){
@@ -38,7 +38,7 @@ plot_threshold_maps = function(data_dir, fig_dir,nc_out_dir,shp_file,overwrite_p
       
       # Add the coastline. ggplot/sf will automatically reproject the coastline 
       # on-the-fly to match the raster's CRS
-      ggplot2::geom_sf(data = land, color = "black", fill = 'grey70', linewidth = 0.5) +
+      ggplot2::geom_sf(data = land, color = "black", fill = 'seagreen', linewidth = 0.5) +
       
       # Add the vector polygons (overlay)
       tidyterra::geom_spatvector(data = shp.vect, fill = NA, color = "black", linewidth = 0.5) +
